@@ -13,6 +13,12 @@ pub struct WalletSetRequest {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletSetResponse {
+    pub wallet_set: WalletSetResponseBody,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct WalletSetResponseBody {
     pub id: Uuid,
     pub custody_type: String,
     pub name: String,
