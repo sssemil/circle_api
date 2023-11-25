@@ -15,9 +15,7 @@ pub struct WalletBalanceQueryParams {
     page_size: Option<u64>,
 }
 
-pub type WalletBalanceQueryParamsBuilder = WalletBalanceQueryParams;
-
-impl WalletBalanceQueryParamsBuilder {
+impl WalletBalanceQueryParams {
     pub fn include_all(mut self, value: bool) -> Self {
         self.include_all = Some(value);
         self
@@ -61,20 +59,6 @@ impl WalletBalanceQueryParamsBuilder {
     pub fn page_size(mut self, value: u64) -> Self {
         self.page_size = Some(value);
         self
-    }
-
-    pub fn build(self) -> WalletBalanceQueryParams {
-        WalletBalanceQueryParams {
-            include_all: self.include_all,
-            name: self.name,
-            token_address: self.token_address,
-            standard: self.standard,
-            from: self.from,
-            to: self.to,
-            page_before: self.page_before,
-            page_after: self.page_after,
-            page_size: self.page_size,
-        }
     }
 }
 

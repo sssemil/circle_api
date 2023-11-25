@@ -54,11 +54,9 @@ pub struct WalletSetsQueryParams {
     pub page_size: Option<u64>,
 }
 
-pub type WalletSetsQueryParamsBuilder = WalletSetsQueryParams;
-
-impl WalletSetsQueryParamsBuilder {
+impl WalletSetsQueryParams {
     pub fn new() -> Self {
-        WalletSetsQueryParamsBuilder {
+        WalletSetsQueryParams {
             from: None,
             to: None,
             page_before: None,
@@ -90,16 +88,6 @@ impl WalletSetsQueryParamsBuilder {
     pub fn page_size(mut self, page_size: u64) -> Self {
         self.page_size = Some(page_size);
         self
-    }
-
-    pub fn build(self) -> WalletSetsQueryParams {
-        WalletSetsQueryParams {
-            from: self.from,
-            to: self.to,
-            page_before: self.page_before,
-            page_after: self.page_after,
-            page_size: self.page_size,
-        }
     }
 }
 

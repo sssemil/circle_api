@@ -1,12 +1,13 @@
 use anyhow::Result;
-use circle_api::api::CircleClient;
-use circle_api::models::wallet_balance::WalletBalanceQueryParamsBuilder;
-use circle_api::models::wallet_set::WalletSetsQueryParamsBuilder;
 use dotenv::dotenv;
 use env_logger::Env;
 use futures::future::join_all;
 use log::{error, info};
 use once_cell::sync::Lazy;
+
+use circle_api::api::CircleClient;
+use circle_api::models::wallet_balance::WalletBalanceQueryParams;
+use circle_api::models::wallet_set::WalletSetsQueryParams;
 
 pub fn get_env(env: &'static str) -> String {
     std::env::var(env).unwrap_or_else(|_| panic!("Cannot get the {} env variable", env))
@@ -70,7 +71,7 @@ async fn run() -> Result<(), anyhow::Error> {
     info!("Get wallet set response: {:?}", get_wallet_set_response);
 
     let wallet_sets_response = circle_client
-        .list_wallet_sets(WalletSetsQueryParamsBuilder::default().build())
+        .list_wallet_sets(WalletSetsQueryParams::default())
         .await?;
     for wallet_set in wallet_sets_response.wallet_sets {
         info!("Wallet set: {:?}", wallet_set);
@@ -93,12 +94,8 @@ async fn run() -> Result<(), anyhow::Error> {
         .wallets
         .iter()
         .map(|w| {
-            circle_client.get_wallet_balance(
-                w.id,
-                WalletBalanceQueryParamsBuilder::default()
-                    .include_all(true)
-                    .build(),
-            )
+            circle_client
+                .get_wallet_balance(w.id, WalletBalanceQueryParams::default().include_all(true))
         })
         .collect::<Vec<_>>();
 
