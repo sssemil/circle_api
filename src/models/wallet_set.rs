@@ -5,7 +5,7 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletSetRequest {
-    pub idempotency_key: String,
+    pub idempotency_key: Uuid,
     pub entity_secret_cipher_text: String,
     pub name: String,
 }

@@ -8,6 +8,8 @@ use uuid::Uuid;
 
 use crate::error::CircleError;
 use crate::models::public_key::PublicKeyResponse;
+use crate::models::transaction::{TransactionRequest, TransactionResponse};
+use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
 use crate::models::wallet_set::{WalletSetRequest, WalletSetResponse};
 
@@ -58,7 +60,7 @@ impl CircleClient {
 
     pub async fn create_wallet_set(
         &self,
-        idempotency_key: String,
+        idempotency_key: Uuid,
         name: String,
     ) -> Result<WalletSetResponse> {
         let url = format!("{}w3s/developer/walletSets", self.base_url);
@@ -87,7 +89,7 @@ impl CircleClient {
 
     pub async fn create_wallet(
         &self,
-        idempotency_key: String,
+        idempotency_key: Uuid,
         wallet_set_id: Uuid,
         blockchains: Vec<String>,
         count: u32,
@@ -114,6 +116,50 @@ impl CircleClient {
         if res.status().is_success() {
             let wallet_create_response = res.json::<ApiResponse<WalletCreateResponse>>().await?;
             Ok(wallet_create_response.data)
+        } else {
+            Err(CircleError::ResponseStatusCodeError(res.status()))?
+        }
+    }
+
+    pub async fn get_wallet_balance(
+        &self,
+        wallet_id: Uuid,
+        query_params: WalletBalanceQueryParams,
+    ) -> Result<WalletBalanceResponse> {
+        let url = format!("{}w3s/wallets/{}/balances", self.base_url, wallet_id);
+
+        let res = self
+            .client
+            .get(&url)
+            .bearer_auth(&self.api_key)
+            .query(&query_params)
+            .send()
+            .await?;
+
+        if res.status().is_success() {
+            let balance_response = res.json::<ApiResponse<WalletBalanceResponse>>().await?;
+            Ok(balance_response.data)
+        } else {
+            Err(CircleError::ResponseStatusCodeError(res.status()))?
+        }
+    }
+
+    pub async fn initiate_transaction(
+        &self,
+        request: TransactionRequest,
+    ) -> Result<TransactionResponse> {
+        let url = format!("{}w3s/developer/transactions/transfer", self.base_url);
+        let res = self
+            .client
+            .post(&url)
+            .json(&request)
+            .bearer_auth(&self.api_key)
+            .send()
+            .await?;
+
+        if res.status().is_success() {
+            let transaction_response = res.json::<ApiResponse<TransactionResponse>>().await?;
+            Ok(transaction_response.data)
         } else {
             Err(CircleError::ResponseStatusCodeError(res.status()))?
         }
