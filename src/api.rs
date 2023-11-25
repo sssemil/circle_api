@@ -1,9 +1,10 @@
 use anyhow::Result;
-use reqwest::Client;
+use reqwest::{Client, Method, Response};
 use rsa::pkcs8::DecodePublicKey;
 use rsa::sha2::Sha256;
 use rsa::{Oaep, RsaPublicKey};
-use serde::Deserialize;
+use serde::de::DeserializeOwned;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::error::CircleError;
@@ -29,62 +30,60 @@ pub struct CircleClient {
 
 impl CircleClient {
     pub async fn new(api_key: String, circle_entity_secret: String) -> Result<Self> {
-        let base_url = "https://api.circle.com/v1/".to_string();
+        let base_url = "https://api.circle.com/v1/";
         let client = Client::new();
 
-        let url = format!("{}w3s/config/entity/publicKey", base_url);
-        let res = client
-            .get(&url)
-            .header("Content-Type", "application/json")
-            .bearer_auth(&api_key)
-            .send()
-            .await?;
-
-        let public_key_response = if res.status().is_success() {
-            res.json::<ApiResponse<PublicKeyResponse>>().await?.data
-        } else {
-            Err(CircleError::ResponseStatusCodeError(res.status()))?
-        };
-
-        let public_key_str = public_key_response.public_key.replace("RSA ", "");
-        let public_key = RsaPublicKey::from_public_key_pem(&public_key_str).unwrap();
+        let public_key = Self::fetch_public_key(&client, base_url, &api_key).await?;
 
         Ok(CircleClient {
-            base_url,
+            base_url: base_url.to_string(),
             api_key,
             circle_entity_secret,
-            client: Client::new(),
+            client,
             public_key,
         })
     }
 
-    pub async fn create_wallet_set(
-        &self,
-        idempotency_key: Uuid,
-        name: String,
-    ) -> Result<WalletSetResponse> {
+    async fn fetch_public_key(client: &Client, base_url: &str, api_key: &str) -> Result<RsaPublicKey> {
+        let url = format!("{}w3s/config/entity/publicKey", base_url);
+        let res = client.get(&url)
+            .header("Content-Type", "application/json")
+            .bearer_auth(api_key)
+            .send()
+            .await?;
+
+        let public_key_response: PublicKeyResponse = Self::parse_response(res).await?;
+        let public_key = RsaPublicKey::from_public_key_pem(&public_key_response.public_key.replace("RSA ", "")).unwrap();
+        Ok(public_key)
+    }
+
+    async fn send_request<T: DeserializeOwned>(&self, method: Method, url: String, body: Option<impl Serialize>) -> Result<T> {
+        let request = self.client
+            .request(method, &url)
+            .bearer_auth(&self.api_key)
+            .json(&body);
+
+        let response = request.send().await?;
+        Self::parse_response(response).await
+    }
+
+    async fn parse_response<T: DeserializeOwned>(response: Response) -> Result<T> {
+        if response.status().is_success() {
+            response.json::<ApiResponse<T>>().await.map(|res| res.data)
+                .map_err(From::from)
+        } else {
+            Err(CircleError::ResponseStatusCodeError(response.status()))?
+        }
+    }
+
+    pub async fn create_wallet_set(&self, idempotency_key: Uuid, name: String) -> Result<WalletSetResponse> {
         let url = format!("{}w3s/developer/walletSets", self.base_url);
         let request = WalletSetRequest {
             idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(
-                &self.public_key,
-                &self.circle_entity_secret,
-            )?,
+            entity_secret_cipher_text: encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
             name,
         };
-        let res = self
-            .client
-            .post(&url)
-            .json(&request)
-            .bearer_auth(&self.api_key)
-            .send()
-            .await?;
-        if res.status().is_success() {
-            let wallet_set_response = res.json::<ApiResponse<WalletSetResponse>>().await?;
-            Ok(wallet_set_response.data)
-        } else {
-            Err(CircleError::ResponseStatusCodeError(res.status()))?
-        }
+        self.send_request(Method::POST, url, Some(request)).await
     }
 
     pub async fn create_wallet(
@@ -97,28 +96,12 @@ impl CircleClient {
         let url = format!("{}w3s/developer/wallets", self.base_url);
         let request = WalletCreateRequest {
             idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(
-                &self.public_key,
-                &self.circle_entity_secret,
-            )?,
+            entity_secret_cipher_text: encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
             wallet_set_id,
             blockchains,
             count,
         };
-        let res = self
-            .client
-            .post(&url)
-            .json(&request)
-            .bearer_auth(&self.api_key)
-            .send()
-            .await?;
-
-        if res.status().is_success() {
-            let wallet_create_response = res.json::<ApiResponse<WalletCreateResponse>>().await?;
-            Ok(wallet_create_response.data)
-        } else {
-            Err(CircleError::ResponseStatusCodeError(res.status()))?
-        }
+        self.send_request(Method::POST, url, Some(request)).await
     }
 
     pub async fn get_wallet_balance(
@@ -127,21 +110,7 @@ impl CircleClient {
         query_params: WalletBalanceQueryParams,
     ) -> Result<WalletBalanceResponse> {
         let url = format!("{}w3s/wallets/{}/balances", self.base_url, wallet_id);
-
-        let res = self
-            .client
-            .get(&url)
-            .bearer_auth(&self.api_key)
-            .query(&query_params)
-            .send()
-            .await?;
-
-        if res.status().is_success() {
-            let balance_response = res.json::<ApiResponse<WalletBalanceResponse>>().await?;
-            Ok(balance_response.data)
-        } else {
-            Err(CircleError::ResponseStatusCodeError(res.status()))?
-        }
+        self.send_request(Method::GET, url, Some(query_params)).await
     }
 
     pub async fn initiate_transaction(
@@ -149,20 +118,7 @@ impl CircleClient {
         request: TransactionRequest,
     ) -> Result<TransactionResponse> {
         let url = format!("{}w3s/developer/transactions/transfer", self.base_url);
-        let res = self
-            .client
-            .post(&url)
-            .json(&request)
-            .bearer_auth(&self.api_key)
-            .send()
-            .await?;
-
-        if res.status().is_success() {
-            let transaction_response = res.json::<ApiResponse<TransactionResponse>>().await?;
-            Ok(transaction_response.data)
-        } else {
-            Err(CircleError::ResponseStatusCodeError(res.status()))?
-        }
+        self.send_request(Method::POST, url, Some(request)).await
     }
 }
 
