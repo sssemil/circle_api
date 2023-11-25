@@ -73,15 +73,17 @@ async fn run() -> Result<(), anyhow::Error> {
     let wallet_sets_response = circle_client
         .list_wallet_sets(WalletSetsQueryParams::default())
         .await?;
-    for wallet_set in wallet_sets_response.wallet_sets {
+    for wallet_set in &wallet_sets_response.wallet_sets {
         info!("Wallet set: {:?}", wallet_set);
     }
+
+    let wallet_set = &wallet_sets_response.wallet_sets[0];
 
     let idempotency_key = uuid::Uuid::new_v4();
     let create_wallet_response = circle_client
         .create_wallet(
             idempotency_key,
-            wallet_set_response.id,
+            wallet_set.id,
             vec!["MATIC-MUMBAI".to_string()],
             2,
         )
