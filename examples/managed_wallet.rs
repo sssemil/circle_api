@@ -1,12 +1,28 @@
 use anyhow::Result;
+use dotenv::dotenv;
 use env_logger::Env;
 use log::{error, info};
+use once_cell::sync::Lazy;
 
-use crate::circle::api::CircleClient;
-use crate::static_config::CONFIG;
+use circle_api::api::CircleClient;
 
-mod circle;
-pub mod static_config;
+pub fn get_env(env: &'static str) -> String {
+    std::env::var(env).unwrap_or_else(|_| panic!("Cannot get the {} env variable", env))
+}
+
+pub struct Config {
+    pub circle_api_key: String,
+    pub circle_entity_secret: String,
+}
+
+pub static CONFIG: Lazy<Config> = Lazy::new(|| {
+    dotenv().expect("Failed to read .env file");
+
+    Config {
+        circle_api_key: get_env("CIRCLE_API_KEY"),
+        circle_entity_secret: get_env("CIRCLE_ENTITY_SECRET"),
+    }
+});
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -28,7 +44,7 @@ async fn run() -> Result<(), anyhow::Error> {
         CONFIG.circle_api_key.clone(),
         CONFIG.circle_entity_secret.clone(),
     )
-        .await?;
+    .await?;
     let idempotency_key = uuid::Uuid::new_v4();
     let wallet_set_response = circle_client
         .create_wallet_set(idempotency_key.to_string(), "test_wallet_set".to_string())

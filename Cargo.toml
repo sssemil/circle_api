@@ -1,7 +1,13 @@
 [package]
-name = "circle_payment_service"
+name = "circle_api"
 version = "0.1.0"
 edition = "2021"
+authors = ["Emil <emil@esnx.xyz>"]
+description = "A library for interacting with the CircleCI API"
+repository = "https://github.com/sssemil/circle_api"
+readme = "README.md"
+license = "MIT"
+rust-version = "1.72.0"
 
 [dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }
@@ -22,3 +28,7 @@ rsa = { version = "0.9.4", features = ["pem", "std", "sha1", "sha2"] }
 pkcs1 = { version = "0.7.5", features = ["pkcs8"] }
 pkcs8 = "0.10.2"
 sha2 = "0.10.8"
+
+[[example]]
+name = "wallet_set"
+path = "examples/managed_wallet.rs"

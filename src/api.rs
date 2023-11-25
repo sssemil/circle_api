@@ -1,13 +1,13 @@
 use anyhow::Result;
 use reqwest::Client;
-use rsa::{Oaep, RsaPublicKey};
 use rsa::pkcs8::DecodePublicKey;
 use rsa::sha2::Sha256;
+use rsa::{Oaep, RsaPublicKey};
 use serde::Deserialize;
 
-use crate::circle::error::CircleError;
-use crate::circle::models::public_key::PublicKeyResponse;
-use crate::circle::models::wallet_set::{WalletSetRequest, WalletSetResponse};
+use crate::error::CircleError;
+use crate::models::public_key::PublicKeyResponse;
+use crate::models::wallet_set::{WalletSetRequest, WalletSetResponse};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -29,7 +29,12 @@ impl CircleClient {
         let client = Client::new();
 
         let url = format!("{}w3s/config/entity/publicKey", base_url);
-        let res = client.get(&url).header("Content-Type", "application/json").bearer_auth(&api_key).send().await?;
+        let res = client
+            .get(&url)
+            .header("Content-Type", "application/json")
+            .bearer_auth(&api_key)
+            .send()
+            .await?;
 
         let public_key_response = if res.status().is_success() {
             res.json::<ApiResponse<PublicKeyResponse>>().await?.data
@@ -63,7 +68,13 @@ impl CircleClient {
             )?,
             name,
         };
-        let res = self.client.post(&url).json(&request).bearer_auth(&self.api_key).send().await?;
+        let res = self
+            .client
+            .post(&url)
+            .json(&request)
+            .bearer_auth(&self.api_key)
+            .send()
+            .await?;
         if res.status().is_success() {
             let wallet_set_response = res.json::<ApiResponse<WalletSetResponse>>().await?;
             Ok(wallet_set_response.data)
@@ -89,8 +100,8 @@ mod test {
     #[tokio::test]
     async fn test_rsa_import() {
         use rsa::pkcs8::DecodePublicKey;
-        use rsa::{Oaep, RsaPublicKey};
         use rsa::sha2::Sha256;
+        use rsa::{Oaep, RsaPublicKey};
 
         let public_key_str = PUBLIC_RSA_KEY_STR.clone().replace("RSA ", "");
         let public_key = RsaPublicKey::from_public_key_pem(&public_key_str).unwrap();
@@ -98,7 +109,9 @@ mod test {
         // Encrypt
         let data = b"hello world";
         let padding = Oaep::new::<Sha256>();
-        let enc_data = public_key.encrypt(&mut rand::thread_rng(), padding, &data[..]).expect("failed to encrypt");
+        let enc_data = public_key
+            .encrypt(&mut rand::thread_rng(), padding, &data[..])
+            .expect("failed to encrypt");
         assert_ne!(&data[..], &enc_data[..]);
     }
 
@@ -113,7 +126,8 @@ mod test {
     #[tokio::test]
     async fn test_parse_wallet_set_response() {
         let json = "{\"data\":{\"walletSet\":{\"id\":\"0068d5a4-eb64-4399-8441-a9af33af80a0\",\"custodyType\":\"DEVELOPER\",\"name\":\"test_wallet_set\",\"updateDate\":\"2023-11-25T14:26:38Z\",\"createDate\":\"2023-11-25T14:26:38Z\"}}}";
-        let wallet_set_response = serde_json::from_str::<ApiResponse<WalletSetResponse>>(json).unwrap();
+        let wallet_set_response =
+            serde_json::from_str::<ApiResponse<WalletSetResponse>>(json).unwrap();
         assert_eq!(wallet_set_response.data.wallet_set.name, "test_wallet_set");
     }
 }
