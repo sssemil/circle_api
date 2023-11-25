@@ -1,3 +1,4 @@
+use crate::models::custody_type::CustodyType;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -19,7 +20,7 @@ pub struct WalletDetail {
     pub address: String,
     pub blockchain: String,
     pub create_date: DateTime<Utc>,
-    pub custody_type: String,
+    pub custody_type: CustodyType,
     pub account_type: Option<String>,
     pub name: Option<String>,
     pub ref_id: Option<String>,

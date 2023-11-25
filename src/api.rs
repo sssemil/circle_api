@@ -12,7 +12,10 @@ use crate::models::public_key::PublicKeyResponse;
 use crate::models::transaction::{TransactionRequest, TransactionResponse};
 use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
-use crate::models::wallet_set::{CreateWalletSetRequest, CreateWalletSetResponse, UpdateWalletSetRequest, UpdateWalletSetResponse, WalletSetsQueryParams, WalletSetsResponse};
+use crate::models::wallet_set::{
+    CreateWalletSetRequest, CreateWalletSetResponse, GetWalletSetResponse, UpdateWalletSetRequest,
+    UpdateWalletSetResponse, WalletSetsQueryParams, WalletSetsResponse,
+};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -98,7 +101,8 @@ impl CircleClient {
     ) -> Result<WalletSetsResponse> {
         let url = format!("{}w3s/walletSets", self.base_url);
 
-        self.send_request(Method::GET, url, Some(query_params)).await
+        self.send_request(Method::GET, url, Some(query_params))
+            .await
     }
 
     pub async fn create_wallet_set(
@@ -123,11 +127,18 @@ impl CircleClient {
         wallet_set_id: Uuid,
         name: String,
     ) -> Result<UpdateWalletSetResponse> {
-        let url = format!("{}w3s/developer/walletSets/{}", self.base_url, wallet_set_id);
-        let request = UpdateWalletSetRequest {
-            name,
-        };
+        let url = format!(
+            "{}w3s/developer/walletSets/{}",
+            self.base_url, wallet_set_id
+        );
+        let request = UpdateWalletSetRequest { name };
         self.send_request(Method::PUT, url, Some(request)).await
+    }
+
+    pub async fn get_wallet_set(&self, wallet_set_id: Uuid) -> Result<GetWalletSetResponse> {
+        let url = format!("{}w3s/walletSets/{}", self.base_url, wallet_set_id);
+
+        self.send_request(Method::GET, url, None::<()>).await
     }
 
     pub async fn create_wallet(

@@ -1,3 +1,4 @@
+use crate::models::custody_type::CustodyType;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -6,7 +7,7 @@ use uuid::Uuid;
 #[serde(rename_all = "camelCase")]
 pub struct WalletSetObjectResponse {
     pub id: Uuid,
-    pub custody_type: String,
+    pub custody_type: CustodyType,
     pub name: String,
     pub update_date: DateTime<Utc>,
     pub create_date: DateTime<Utc>,
@@ -35,6 +36,12 @@ pub struct UpdateWalletSetRequest {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateWalletSetResponse {
+    pub wallet_set: WalletSetObjectResponse,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct GetWalletSetResponse {
     pub wallet_set: WalletSetObjectResponse,
 }
 
@@ -101,7 +108,7 @@ impl WalletSetsQueryParamsBuilder {
 pub struct WalletSet {
     pub id: String,
     pub create_date: DateTime<Utc>,
-    pub custody_type: String,
+    pub custody_type: CustodyType,
     pub name: Option<String>,
     pub update_date: DateTime<Utc>,
     pub user_id: Option<String>,

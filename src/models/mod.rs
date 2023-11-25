@@ -1,3 +1,4 @@
+pub mod custody_type;
 pub mod public_key;
 pub mod transaction;
 pub mod wallet_balance;
