@@ -14,5 +14,5 @@ CIRCLE_ENTITY_SECRET=your_entity_secret
 
 And then:
 ```
-cargo run
+cargo run --example managed_wallet
 ```
