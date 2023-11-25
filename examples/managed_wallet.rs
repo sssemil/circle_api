@@ -48,7 +48,20 @@ async fn run() -> Result<(), anyhow::Error> {
     let idempotency_key = uuid::Uuid::new_v4();
     let wallet_set_response = circle_client
         .create_wallet_set(idempotency_key.to_string(), "test_wallet_set".to_string())
-        .await?;
+        .await?
+        .wallet_set;
     info!("Wallet set response: {:?}", wallet_set_response);
+    let idempotency_key = uuid::Uuid::new_v4();
+    let create_wallet_response = circle_client
+        .create_wallet(
+            idempotency_key.to_string(),
+            wallet_set_response.id,
+            vec!["MATIC-MUMBAI".to_string()],
+            2,
+        )
+        .await?;
+    for (i, wallet) in create_wallet_response.wallets.iter().enumerate() {
+        info!("Wallet #{}: {:?}", i, wallet);
+    }
     Ok(())
 }

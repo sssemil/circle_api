@@ -4,9 +4,11 @@ use rsa::pkcs8::DecodePublicKey;
 use rsa::sha2::Sha256;
 use rsa::{Oaep, RsaPublicKey};
 use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::error::CircleError;
 use crate::models::public_key::PublicKeyResponse;
+use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
 use crate::models::wallet_set::{WalletSetRequest, WalletSetResponse};
 
 #[derive(Deserialize, Debug)]
@@ -78,6 +80,40 @@ impl CircleClient {
         if res.status().is_success() {
             let wallet_set_response = res.json::<ApiResponse<WalletSetResponse>>().await?;
             Ok(wallet_set_response.data)
+        } else {
+            Err(CircleError::ResponseStatusCodeError(res.status()))?
+        }
+    }
+
+    pub async fn create_wallet(
+        &self,
+        idempotency_key: String,
+        wallet_set_id: Uuid,
+        blockchains: Vec<String>,
+        count: u32,
+    ) -> Result<WalletCreateResponse> {
+        let url = format!("{}w3s/developer/wallets", self.base_url);
+        let request = WalletCreateRequest {
+            idempotency_key,
+            entity_secret_cipher_text: encrypt_entity_secret(
+                &self.public_key,
+                &self.circle_entity_secret,
+            )?,
+            wallet_set_id,
+            blockchains,
+            count,
+        };
+        let res = self
+            .client
+            .post(&url)
+            .json(&request)
+            .bearer_auth(&self.api_key)
+            .send()
+            .await?;
+
+        if res.status().is_success() {
+            let wallet_create_response = res.json::<ApiResponse<WalletCreateResponse>>().await?;
+            Ok(wallet_create_response.data)
         } else {
             Err(CircleError::ResponseStatusCodeError(res.status()))?
         }
