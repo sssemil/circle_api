@@ -1,11 +1,12 @@
 use anyhow::Result;
+use circle_api::api::CircleClient;
+use circle_api::models::wallet_balance::WalletBalanceQueryParamsBuilder;
 use dotenv::dotenv;
 use env_logger::Env;
+use futures::future::join_all;
 use log::{error, info};
 use once_cell::sync::Lazy;
-use futures::future::join_all;
-use circle_api::api::CircleClient;
-use circle_api::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceQueryParamsBuilder, WalletBalanceResponse};
+use circle_api::models::wallet_set::{WalletSetsQueryParams, WalletSetsQueryParamsBuilder};
 
 pub fn get_env(env: &'static str) -> String {
     std::env::var(env).unwrap_or_else(|_| panic!("Cannot get the {} env variable", env))
@@ -46,12 +47,35 @@ async fn run() -> Result<(), anyhow::Error> {
         CONFIG.circle_entity_secret.clone(),
     )
     .await?;
+
+    let wallet_set_name = "test_wallet_set";
     let idempotency_key = uuid::Uuid::new_v4();
     let wallet_set_response = circle_client
-        .create_wallet_set(idempotency_key, "test_wallet_set".to_string())
+        .create_wallet_set(idempotency_key,wallet_set_name.to_string())
         .await?
         .wallet_set;
     info!("Wallet set response: {:?}", wallet_set_response);
+
+    let wallet_set_name = "test_updated_wallet_set";
+    let update_wallet_set_response = circle_client
+        .update_wallet_set(
+            wallet_set_response.id,
+            wallet_set_name.to_string(),
+        )
+        .await?
+        .wallet_set;
+    info!("Updated wallet set response: {:?}", update_wallet_set_response);
+
+    let wallet_sets_response = circle_client
+        .list_wallet_sets(
+            WalletSetsQueryParamsBuilder::default()
+                .build(),
+        )
+        .await?;
+    for wallet_set in wallet_sets_response.wallet_sets {
+        info!("Wallet set: {:?}", wallet_set);
+    }
+
     let idempotency_key = uuid::Uuid::new_v4();
     let create_wallet_response = circle_client
         .create_wallet(
@@ -65,16 +89,23 @@ async fn run() -> Result<(), anyhow::Error> {
         info!("Wallet #{}: {:?}", i, wallet);
     }
 
-    let balance_futures = create_wallet_response.wallets.iter().map(|w| {
-        circle_client.get_wallet_balance(
-            w.id,
-            WalletBalanceQueryParamsBuilder::default()
-                .include_all(true)
-                .build()
-        )
-    }).collect::<Vec<_>>();
+    let balance_futures = create_wallet_response
+        .wallets
+        .iter()
+        .map(|w| {
+            circle_client.get_wallet_balance(
+                w.id,
+                WalletBalanceQueryParamsBuilder::default()
+                    .include_all(true)
+                    .build(),
+            )
+        })
+        .collect::<Vec<_>>();
 
-    let balances = join_all(balance_futures).await.into_iter().collect::<Result<Vec<_>>>()?;
+    let balances = join_all(balance_futures)
+        .await
+        .into_iter()
+        .collect::<Result<Vec<_>>>()?;
     for balance in balances {
         info!("Balance: {:?}", balance);
     }

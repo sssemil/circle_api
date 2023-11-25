@@ -12,7 +12,7 @@ use crate::models::public_key::PublicKeyResponse;
 use crate::models::transaction::{TransactionRequest, TransactionResponse};
 use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
-use crate::models::wallet_set::{WalletSetRequest, WalletSetResponse};
+use crate::models::wallet_set::{CreateWalletSetRequest, CreateWalletSetResponse, UpdateWalletSetRequest, UpdateWalletSetResponse, WalletSetsQueryParams, WalletSetsResponse};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -44,21 +44,34 @@ impl CircleClient {
         })
     }
 
-    async fn fetch_public_key(client: &Client, base_url: &str, api_key: &str) -> Result<RsaPublicKey> {
+    async fn fetch_public_key(
+        client: &Client,
+        base_url: &str,
+        api_key: &str,
+    ) -> Result<RsaPublicKey> {
         let url = format!("{}w3s/config/entity/publicKey", base_url);
-        let res = client.get(&url)
+        let res = client
+            .get(&url)
             .header("Content-Type", "application/json")
             .bearer_auth(api_key)
             .send()
             .await?;
 
         let public_key_response: PublicKeyResponse = Self::parse_response(res).await?;
-        let public_key = RsaPublicKey::from_public_key_pem(&public_key_response.public_key.replace("RSA ", "")).unwrap();
+        let public_key =
+            RsaPublicKey::from_public_key_pem(&public_key_response.public_key.replace("RSA ", ""))
+                .unwrap();
         Ok(public_key)
     }
 
-    async fn send_request<T: DeserializeOwned>(&self, method: Method, url: String, body: Option<impl Serialize>) -> Result<T> {
-        let request = self.client
+    async fn send_request<T: DeserializeOwned>(
+        &self,
+        method: Method,
+        url: String,
+        body: Option<impl Serialize>,
+    ) -> Result<T> {
+        let request = self
+            .client
             .request(method, &url)
             .bearer_auth(&self.api_key)
             .json(&body);
@@ -69,21 +82,52 @@ impl CircleClient {
 
     async fn parse_response<T: DeserializeOwned>(response: Response) -> Result<T> {
         if response.status().is_success() {
-            response.json::<ApiResponse<T>>().await.map(|res| res.data)
+            response
+                .json::<ApiResponse<T>>()
+                .await
+                .map(|res| res.data)
                 .map_err(From::from)
         } else {
             Err(CircleError::ResponseStatusCodeError(response.status()))?
         }
     }
 
-    pub async fn create_wallet_set(&self, idempotency_key: Uuid, name: String) -> Result<WalletSetResponse> {
+    pub async fn list_wallet_sets(
+        &self,
+        query_params: WalletSetsQueryParams,
+    ) -> Result<WalletSetsResponse> {
+        let url = format!("{}w3s/walletSets", self.base_url);
+
+        self.send_request(Method::GET, url, Some(query_params)).await
+    }
+
+    pub async fn create_wallet_set(
+        &self,
+        idempotency_key: Uuid,
+        name: String,
+    ) -> Result<CreateWalletSetResponse> {
         let url = format!("{}w3s/developer/walletSets", self.base_url);
-        let request = WalletSetRequest {
+        let request = CreateWalletSetRequest {
             idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
+            entity_secret_cipher_text: encrypt_entity_secret(
+                &self.public_key,
+                &self.circle_entity_secret,
+            )?,
             name,
         };
         self.send_request(Method::POST, url, Some(request)).await
+    }
+
+    pub async fn update_wallet_set(
+        &self,
+        wallet_set_id: Uuid,
+        name: String,
+    ) -> Result<UpdateWalletSetResponse> {
+        let url = format!("{}w3s/developer/walletSets/{}", self.base_url, wallet_set_id);
+        let request = UpdateWalletSetRequest {
+            name,
+        };
+        self.send_request(Method::PUT, url, Some(request)).await
     }
 
     pub async fn create_wallet(
@@ -96,7 +140,10 @@ impl CircleClient {
         let url = format!("{}w3s/developer/wallets", self.base_url);
         let request = WalletCreateRequest {
             idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
+            entity_secret_cipher_text: encrypt_entity_secret(
+                &self.public_key,
+                &self.circle_entity_secret,
+            )?,
             wallet_set_id,
             blockchains,
             count,
@@ -110,7 +157,8 @@ impl CircleClient {
         query_params: WalletBalanceQueryParams,
     ) -> Result<WalletBalanceResponse> {
         let url = format!("{}w3s/wallets/{}/balances", self.base_url, wallet_id);
-        self.send_request(Method::GET, url, Some(query_params)).await
+        self.send_request(Method::GET, url, Some(query_params))
+            .await
     }
 
     pub async fn initiate_transaction(
@@ -165,7 +213,7 @@ mod test {
     async fn test_parse_wallet_set_response() {
         let json = "{\"data\":{\"walletSet\":{\"id\":\"0068d5a4-eb64-4399-8441-a9af33af80a0\",\"custodyType\":\"DEVELOPER\",\"name\":\"test_wallet_set\",\"updateDate\":\"2023-11-25T14:26:38Z\",\"createDate\":\"2023-11-25T14:26:38Z\"}}}";
         let wallet_set_response =
-            serde_json::from_str::<ApiResponse<WalletSetResponse>>(json).unwrap();
+            serde_json::from_str::<ApiResponse<CreateWalletSetResponse>>(json).unwrap();
         assert_eq!(wallet_set_response.data.wallet_set.name, "test_wallet_set");
     }
 }
