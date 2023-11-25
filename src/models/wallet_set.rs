@@ -94,7 +94,7 @@ impl WalletSetsQueryParams {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletSet {
-    pub id: String,
+    pub id: Uuid,
     pub create_date: DateTime<Utc>,
     pub custody_type: CustodyType,
     pub name: Option<String>,
