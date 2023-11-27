@@ -104,6 +104,7 @@ async fn run() -> Result<(), anyhow::Error> {
     let balances = join_all(balance_futures)
         .await
         .into_iter()
+        .map(|r| r.map_err(|e| e.into()))
         .collect::<Result<Vec<_>>>()?;
     for balance in balances {
         info!("Balance: {:?}", balance);

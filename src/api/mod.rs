@@ -4,21 +4,29 @@ mod transactions;
 mod wallet_sets;
 mod wallets;
 
-use anyhow::Result;
+use crate::error::Result;
 use reqwest::{Client, Method, Response};
 use rsa::pkcs8::DecodePublicKey;
 use rsa::sha2::Sha256;
 use rsa::{Oaep, RsaPublicKey};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::error::CircleError;
 use crate::models::public_key::PublicKeyResponse;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-struct ApiResponse<T> {
+struct ApiSuccess<T> {
     data: T,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ApiError {
+    code: i64,
+    message: String,
 }
 
 pub struct CircleClient {
@@ -82,14 +90,22 @@ impl CircleClient {
     }
 
     async fn parse_response<T: DeserializeOwned>(response: Response) -> Result<T> {
+        let request_id = response
+            .headers()
+            .get("X-Request-Id")
+            .ok_or(CircleError::MissingRequestId)?;
+        let request_id = request_id.to_str()?;
+        let request_id = Uuid::parse_str(request_id)?;
+
         if response.status().is_success() {
             response
-                .json::<ApiResponse<T>>()
+                .json::<ApiSuccess<T>>()
                 .await
                 .map(|res| res.data)
                 .map_err(From::from)
         } else {
-            Err(CircleError::ResponseStatusCodeError(response.status()))?
+            let r = response.json::<ApiError>().await?;
+            Err(CircleError::ApiError(request_id, r))?
         }
     }
 }
@@ -138,7 +154,7 @@ mod test {
     async fn test_parse_wallet_set_response() {
         let json = "{\"data\":{\"walletSet\":{\"id\":\"0068d5a4-eb64-4399-8441-a9af33af80a0\",\"custodyType\":\"DEVELOPER\",\"name\":\"test_wallet_set\",\"updateDate\":\"2023-11-25T14:26:38Z\",\"createDate\":\"2023-11-25T14:26:38Z\"}}}";
         let wallet_set_response =
-            serde_json::from_str::<ApiResponse<CreateWalletSetResponse>>(json).unwrap();
+            serde_json::from_str::<ApiSuccess<CreateWalletSetResponse>>(json).unwrap();
         assert_eq!(wallet_set_response.data.wallet_set.name, "test_wallet_set");
     }
 }

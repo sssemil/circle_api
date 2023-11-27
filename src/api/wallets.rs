@@ -1,4 +1,4 @@
-use anyhow::Result;
+use crate::error::Result;
 use reqwest::Method;
 
 use crate::api::{encrypt_entity_secret, CircleClient};
