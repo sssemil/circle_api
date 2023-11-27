@@ -20,7 +20,13 @@ pub struct TransactionRequest {
 }
 
 impl TransactionRequest {
-    pub fn new(idempotency_key: Uuid, destination_address: String, entity_secret_cipher_text: String, token_id: Uuid, wallet_id: Uuid) -> Self {
+    pub fn new(
+        idempotency_key: Uuid,
+        destination_address: String,
+        entity_secret_cipher_text: String,
+        token_id: Uuid,
+        wallet_id: Uuid,
+    ) -> Self {
         TransactionRequest {
             idempotency_key,
             amounts: Vec::new(),
@@ -78,7 +84,6 @@ impl TransactionRequest {
         self
     }
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

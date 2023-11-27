@@ -1,3 +1,9 @@
+mod signing;
+mod token_lookup;
+mod transactions;
+mod wallet_sets;
+mod wallets;
+
 use anyhow::Result;
 use reqwest::{Client, Method, Response};
 use rsa::pkcs8::DecodePublicKey;
@@ -5,17 +11,9 @@ use rsa::sha2::Sha256;
 use rsa::{Oaep, RsaPublicKey};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::error::CircleError;
 use crate::models::public_key::PublicKeyResponse;
-use crate::models::transaction::{TransactionRequest, TransactionResponse};
-use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
-use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
-use crate::models::wallet_set::{
-    CreateWalletSetRequest, CreateWalletSetResponse, GetWalletSetResponse, UpdateWalletSetRequest,
-    UpdateWalletSetResponse, WalletSetsQueryParams, WalletSetsResponse,
-};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -94,91 +92,6 @@ impl CircleClient {
             Err(CircleError::ResponseStatusCodeError(response.status()))?
         }
     }
-
-    pub async fn list_wallet_sets(
-        &self,
-        query_params: WalletSetsQueryParams,
-    ) -> Result<WalletSetsResponse> {
-        let url = format!("{}w3s/walletSets", self.base_url);
-
-        self.send_request(Method::GET, url, Some(query_params))
-            .await
-    }
-
-    pub async fn create_wallet_set(
-        &self,
-        idempotency_key: Uuid,
-        name: String,
-    ) -> Result<CreateWalletSetResponse> {
-        let url = format!("{}w3s/developer/walletSets", self.base_url);
-        let request = CreateWalletSetRequest {
-            idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(
-                &self.public_key,
-                &self.circle_entity_secret,
-            )?,
-            name,
-        };
-        self.send_request(Method::POST, url, Some(request)).await
-    }
-
-    pub async fn update_wallet_set(
-        &self,
-        wallet_set_id: Uuid,
-        name: String,
-    ) -> Result<UpdateWalletSetResponse> {
-        let url = format!(
-            "{}w3s/developer/walletSets/{}",
-            self.base_url, wallet_set_id
-        );
-        let request = UpdateWalletSetRequest { name };
-        self.send_request(Method::PUT, url, Some(request)).await
-    }
-
-    pub async fn get_wallet_set(&self, wallet_set_id: Uuid) -> Result<GetWalletSetResponse> {
-        let url = format!("{}w3s/walletSets/{}", self.base_url, wallet_set_id);
-
-        self.send_request(Method::GET, url, None::<()>).await
-    }
-
-    pub async fn create_wallet(
-        &self,
-        idempotency_key: Uuid,
-        wallet_set_id: Uuid,
-        blockchains: Vec<String>,
-        count: u32,
-    ) -> Result<WalletCreateResponse> {
-        let url = format!("{}w3s/developer/wallets", self.base_url);
-        let request = WalletCreateRequest {
-            idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(
-                &self.public_key,
-                &self.circle_entity_secret,
-            )?,
-            wallet_set_id,
-            blockchains,
-            count,
-        };
-        self.send_request(Method::POST, url, Some(request)).await
-    }
-
-    pub async fn get_wallet_balance(
-        &self,
-        wallet_id: Uuid,
-        query_params: WalletBalanceQueryParams,
-    ) -> Result<WalletBalanceResponse> {
-        let url = format!("{}w3s/wallets/{}/balances", self.base_url, wallet_id);
-        self.send_request(Method::GET, url, Some(query_params))
-            .await
-    }
-
-    pub async fn initiate_transaction(
-        &self,
-        request: TransactionRequest,
-    ) -> Result<TransactionResponse> {
-        let url = format!("{}w3s/developer/transactions/transfer", self.base_url);
-        self.send_request(Method::POST, url, Some(request)).await
-    }
 }
 
 pub fn encrypt_entity_secret(public_key: &RsaPublicKey, entity_secret: &str) -> Result<String> {
@@ -191,6 +104,7 @@ pub fn encrypt_entity_secret(public_key: &RsaPublicKey, entity_secret: &str) -> 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::models::wallet_set::CreateWalletSetResponse;
 
     const PUBLIC_RSA_KEY_STR: &str = "-----BEGIN RSA PUBLIC KEY-----\nMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAxDiWHMTzDfIMeLVw4BGT\nOnhVv/jjccrcHFMtm0ShbOb8bu0b/hvtN2oEdWx2RTdNT7AvntB9R9vCv60lZrk0\nZtfR8p2lew++NKAfyEeqTfL8dpfjhPtTZWLjdKG9SzkN66SRXBz5fNae4qaDHG3N\nI8PtYmwRnpfy6VzpcdwOGQxv2nGmgT4AKD/A1wl+7W2KruUPlWaGRNsSiFVceNTR\nYWll5OsRM0BB9YLkwDAFm27e+XmISJlapSmD8Gqx3i5ZvpwINboj1JiEaqMe/bAs\nASYHR73qz7G/B9p7nSc6tKr3SToXivZqDC47NLa81JZuyHyc7U5r+pdcTXOCsa+T\nTS0Y+fEZZ5rOQO3nI3voDULvf1yDvWsJTJW8qi3RjtGlR3P3M0JwONF0xZUwtSal\nMOLWwNjZrC33LIuGoD4M+43/y62xkdXIE4CHXTo3annRPnktkdYxTVfIYUXH8JDA\ng7++dIE4ZaN41Eg2mWCt3SSry9BqrMhEcY7YyuVyzJnv59cGCi5sDnQHGlXs1xJG\n/5QSyhID9+J2RRtu4sZ+5aLIvcIkMsNhul0mbfTRr34f9MGqYv9mkuzHUC/ppykG\nOv1ZJ0PWMIX4WCMXLKSi5Ii4Eayrev4BZk6WtXnvgX+EY9j+/85o+XgvyaX1Z7hE\nPBYZ9E8aCK/7kzIK4tgXviECAwEAAQ==\n-----END RSA PUBLIC KEY-----\n";
 
