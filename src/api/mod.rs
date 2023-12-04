@@ -130,7 +130,7 @@ mod test {
         use rsa::sha2::Sha256;
         use rsa::{Oaep, RsaPublicKey};
 
-        let public_key_str = PUBLIC_RSA_KEY_STR.clone().replace("RSA ", "");
+        let public_key_str = PUBLIC_RSA_KEY_STR.replace("RSA ", "");
         let public_key = RsaPublicKey::from_public_key_pem(&public_key_str).unwrap();
 
         // Encrypt
@@ -144,7 +144,7 @@ mod test {
 
     #[tokio::test]
     async fn test_encrypt_hex_entity_secret() {
-        let public_key_str = PUBLIC_RSA_KEY_STR.clone().replace("RSA ", "");
+        let public_key_str = PUBLIC_RSA_KEY_STR.replace("RSA ", "");
         let public_key = RsaPublicKey::from_public_key_pem(&public_key_str).unwrap();
         let dummy_entity_secret = hex::encode("test");
         encrypt_entity_secret(&public_key, &dummy_entity_secret).unwrap();
