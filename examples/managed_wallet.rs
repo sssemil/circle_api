@@ -111,6 +111,19 @@ async fn run() -> Result<(), anyhow::Error> {
         get_wallet_response
     );
 
+    // Update wallet
+    let wallet = &list_wallet_response.wallets[0];
+    let update_wallet_response = circle_client
+        .update_wallet(
+            wallet.id,
+            circle_api::models::wallet_update::WalletUpdateRequest {
+                name: "test_wallet".to_string(),
+                ref_id: "test_ref_id".to_string(),
+            },
+        )
+        .await?;
+    info!("Update wallet response: {:?}", update_wallet_response);
+
     let balance_futures = create_wallet_response
         .wallets
         .iter()

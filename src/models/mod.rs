@@ -9,5 +9,6 @@ pub mod wallet_detail;
 pub mod wallet_get;
 pub mod wallet_list;
 pub mod wallet_set;
+pub mod wallet_update;
 
 pub type RequestId = Uuid;
