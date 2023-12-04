@@ -8,6 +8,7 @@ use once_cell::sync::Lazy;
 use circle_api::api::CircleClient;
 use circle_api::models::wallet_balance::WalletBalanceQueryParams;
 use circle_api::models::wallet_list::WalletListQueryParams;
+use circle_api::models::wallet_nfts::WalletNftsQueryParams;
 use circle_api::models::wallet_set::WalletSetsQueryParams;
 
 pub fn get_env(env: &'static str) -> String {
@@ -140,6 +141,21 @@ async fn run() -> Result<(), anyhow::Error> {
         .collect::<Result<Vec<_>>>()?;
     for balance in balances {
         info!("Balance: {:?}", balance);
+    }
+
+    let nfts_futures = create_wallet_response
+        .wallets
+        .iter()
+        .map(|w| circle_client.get_wallet_nfts(w.id, WalletNftsQueryParams::default()))
+        .collect::<Vec<_>>();
+
+    let nfts = join_all(nfts_futures)
+        .await
+        .into_iter()
+        .map(|r| r.map_err(|e| e.into()))
+        .collect::<Result<Vec<_>>>()?;
+    for nft in nfts {
+        info!("NFT: {:?}", nft);
     }
 
     Ok(())
