@@ -1,6 +1,6 @@
 use crate::error::CircleError;
 use crate::error::Result;
-use crate::models::wallet_create::WalletDetail;
+use crate::models::wallet_detail::WalletDetail;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

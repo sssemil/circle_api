@@ -1,6 +1,5 @@
-use crate::models::custody_type::CustodyType;
 use crate::models::wallet_detail::WalletDetail;
-use chrono::{DateTime, Utc};
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
