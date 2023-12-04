@@ -7,6 +7,7 @@ use once_cell::sync::Lazy;
 
 use circle_api::api::CircleClient;
 use circle_api::models::wallet_balance::WalletBalanceQueryParams;
+use circle_api::models::wallet_list::WalletListQueryParams;
 use circle_api::models::wallet_set::WalletSetsQueryParams;
 
 pub fn get_env(env: &'static str) -> String {
@@ -89,6 +90,13 @@ async fn run() -> Result<(), anyhow::Error> {
         )
         .await?;
     for (i, wallet) in create_wallet_response.wallets.iter().enumerate() {
+        info!("Wallet #{}: {:?}", i, wallet);
+    }
+
+    let list_wallet_response = circle_client
+        .list_wallets(WalletListQueryParams::default())
+        .await?;
+    for (i, wallet) in list_wallet_response.wallets.iter().enumerate() {
         info!("Wallet #{}: {:?}", i, wallet);
     }
 

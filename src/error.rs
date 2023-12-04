@@ -8,6 +8,7 @@ pub type Result<T> = std::result::Result<T, CircleError>;
 #[derive(Debug)]
 pub enum CircleError {
     ApiError(RequestId, ApiError),
+    ValueError,
     MissingRequestId,
     RequestIdIsNotAValidString(reqwest::header::ToStrError),
     RequestIdIsNotAValidUuid(uuid::Error),

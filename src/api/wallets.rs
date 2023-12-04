@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
+use crate::models::wallet_list::{WalletListQueryParams, WalletListResponse};
 
 impl CircleClient {
     pub async fn create_wallet(
@@ -29,7 +30,15 @@ impl CircleClient {
         self.send_request(Method::POST, url, Some(request)).await
     }
 
-    // TODO: list wallets
+    pub async fn list_wallets(
+        &self,
+        query_params: WalletListQueryParams,
+    ) -> Result<WalletListResponse> {
+        let url = format!("{}w3s/wallets", self.base_url);
+        self.send_request(Method::GET, url, Some(query_params))
+            .await
+    }
+
     // TODO: get a wallet
     // TODO: updates a wallet
 
