@@ -7,6 +7,7 @@ use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceRespo
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
 use crate::models::wallet_get::WalletGetResponse;
 use crate::models::wallet_list::{WalletListQueryParams, WalletListResponse};
+use crate::models::wallet_nfts::{WalletNftsQueryParams, WalletNftsResponse};
 use crate::models::wallet_update::{WalletUpdateRequest, WalletUpdateResponse};
 
 impl CircleClient {
@@ -65,5 +66,13 @@ impl CircleClient {
             .await
     }
 
-    // TODO: get nfts for a wallet
+    pub async fn get_wallet_nfts(
+        &self,
+        wallet_id: Uuid,
+        query_params: WalletNftsQueryParams,
+    ) -> Result<WalletNftsResponse> {
+        let url = format!("{}w3s/wallets/{}/nfts", self.base_url, wallet_id);
+        self.send_request(Method::GET, url, Some(query_params))
+            .await
+    }
 }
