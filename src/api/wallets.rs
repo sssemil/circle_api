@@ -1,11 +1,11 @@
-use crate::error::Result;
 use reqwest::Method;
-
-use crate::api::{encrypt_entity_secret, CircleClient};
 use uuid::Uuid;
 
+use crate::api::{encrypt_entity_secret, CircleClient};
+use crate::error::Result;
 use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
+use crate::models::wallet_get::WalletGetResponse;
 use crate::models::wallet_list::{WalletListQueryParams, WalletListResponse};
 
 impl CircleClient {
@@ -39,7 +39,11 @@ impl CircleClient {
             .await
     }
 
-    // TODO: get a wallet
+    pub async fn get_wallet(&self, wallet_id: Uuid) -> Result<WalletGetResponse> {
+        let url = format!("{}w3s/wallets/{}", self.base_url, wallet_id);
+        self.send_request(Method::GET, url, None::<()>).await
+    }
+
     // TODO: updates a wallet
 
     pub async fn get_wallet_balance(

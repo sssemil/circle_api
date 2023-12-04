@@ -100,6 +100,17 @@ async fn run() -> Result<(), anyhow::Error> {
         info!("Wallet #{}: {:?}", i, wallet);
     }
 
+    let wallet = &list_wallet_response.wallets[0];
+    let get_wallet_response = circle_client.get_wallet(wallet.id).await?;
+    info!("Get wallet response: {:?}", get_wallet_response);
+
+    // get non-existent wallet
+    let get_wallet_response = circle_client.get_wallet(uuid::Uuid::new_v4()).await;
+    info!(
+        "Get non-existent wallet response: {:?}",
+        get_wallet_response
+    );
+
     let balance_futures = create_wallet_response
         .wallets
         .iter()
