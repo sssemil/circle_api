@@ -1,9 +1,9 @@
 use crate::error::CircleError;
 use crate::error::Result;
+use crate::models::wallet_create::WalletDetail;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::models::wallet_create::WalletDetail;
 
 #[derive(Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
@@ -75,5 +75,5 @@ impl WalletListQueryParams {
 #[derive(Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletListResponse {
-    pub wallets: Vec<WalletDetail>
+    pub wallets: Vec<WalletDetail>,
 }
