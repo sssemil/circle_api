@@ -35,3 +35,7 @@ futures = "0.3.29"
 [[example]]
 name = "managed_wallet"
 path = "examples/managed_wallet.rs"
+
+[[example]]
+name = "managed_wallet_existing"
+path = "examples/managed_wallet_existing.rs"
