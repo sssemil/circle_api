@@ -8,7 +8,7 @@ use once_cell::sync::Lazy;
 use circle_api::api::CircleClient;
 use circle_api::models::wallet_balance::WalletBalanceQueryParams;
 use circle_api::models::wallet_list::WalletListQueryParams;
-use circle_api::models::wallet_nfts::WalletNftsQueryParams;
+
 use circle_api::models::wallet_set::WalletSetsQueryParams;
 
 pub fn get_env(env: &'static str) -> String {
@@ -90,7 +90,6 @@ async fn run() -> Result<(), anyhow::Error> {
     }
 
     info!("Sending a bit of eth from wallet 0 to wallet 1...");
-
 
     Ok(())
 }
