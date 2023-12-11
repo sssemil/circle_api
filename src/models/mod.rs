@@ -4,7 +4,7 @@ pub mod custody_type;
 pub mod pagination;
 pub mod public_key;
 pub mod time_range;
-pub mod transaction;
+pub mod transaction_transfer_create;
 pub mod wallet_balance;
 pub mod wallet_create;
 pub mod wallet_detail;

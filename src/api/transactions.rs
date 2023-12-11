@@ -3,13 +3,13 @@ use reqwest::Method;
 use crate::api::CircleClient;
 
 use crate::error::Result;
-use crate::models::transaction::{TransactionRequest, TransactionResponse};
+use crate::models::transaction_transfer_create::{TransactionTransferCreateRequest, TransactionTransferCreateResponse};
 
 impl CircleClient {
     pub async fn create_transfer_transaction(
         &self,
-        request: TransactionRequest,
-    ) -> Result<TransactionResponse> {
+        request: TransactionTransferCreateRequest,
+    ) -> Result<TransactionTransferCreateResponse> {
         let url = format!("{}w3s/developer/transactions/transfer", self.base_url);
         let r = self.send_request(Method::POST, url, Some(request)).await?;
         Ok(r)

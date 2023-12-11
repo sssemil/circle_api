@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct TransactionRequest {
+pub struct TransactionTransferCreateRequest {
     idempotency_key: Uuid,
     amounts: Vec<String>,
     destination_address: String,
@@ -19,7 +19,7 @@ pub struct TransactionRequest {
     wallet_id: Uuid,
 }
 
-impl TransactionRequest {
+impl TransactionTransferCreateRequest {
     pub fn new(
         idempotency_key: Uuid,
         destination_address: String,
@@ -27,7 +27,7 @@ impl TransactionRequest {
         token_id: Uuid,
         wallet_id: Uuid,
     ) -> Self {
-        TransactionRequest {
+        TransactionTransferCreateRequest {
             idempotency_key,
             amounts: Vec::new(),
             destination_address,
@@ -95,7 +95,7 @@ pub enum FeeLevel {
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct TransactionResponse {
+pub struct TransactionTransferCreateResponse {
     pub id: String,
     pub state: TransactionState,
 }
