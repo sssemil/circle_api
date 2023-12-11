@@ -1,13 +1,14 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::models::auth::Auth;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionTransferCreateRequest {
-    idempotency_key: Uuid,
+    #[serde(flatten)]
+    auth: Auth,
     amounts: Vec<String>,
     destination_address: String,
-    entity_secret_cipher_text: String,
     fee_level: Option<FeeLevel>,
     gas_limit: Option<u64>,
     gas_price: Option<f64>,
@@ -28,10 +29,9 @@ impl TransactionTransferCreateRequest {
         wallet_id: Uuid,
     ) -> Self {
         TransactionTransferCreateRequest {
-            idempotency_key,
+            auth: Auth::new(idempotency_key, entity_secret_cipher_text),
             amounts: Vec::new(),
             destination_address,
-            entity_secret_cipher_text,
             fee_level: None,
             gas_limit: None,
             gas_price: None,

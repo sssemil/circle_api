@@ -2,6 +2,7 @@ use crate::models::custody_type::CustodyType;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+use crate::models::auth::Auth;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -16,8 +17,8 @@ pub struct WalletSetObjectResponse {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateWalletSetRequest {
-    pub idempotency_key: Uuid,
-    pub entity_secret_cipher_text: String,
+    #[serde(flatten)]
+    pub auth: Auth,
     pub name: String,
 }
 

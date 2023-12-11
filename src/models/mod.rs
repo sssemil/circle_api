@@ -14,5 +14,6 @@ pub mod wallet_nfts;
 mod wallet_objects;
 pub mod wallet_set;
 pub mod wallet_update;
+mod auth;
 
 pub type RequestId = Uuid;
