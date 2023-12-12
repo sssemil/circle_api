@@ -7,7 +7,9 @@ use once_cell::sync::Lazy;
 use uuid::Uuid;
 
 use circle_api::api::CircleClient;
-use circle_api::models::transaction_transfer_create::{FeeLevel, TransactionTransferCreateRequestBuilder};
+use circle_api::models::transaction_transfer_create::{
+    FeeLevel, TransactionTransferCreateRequestBuilder,
+};
 use circle_api::models::wallet_balance::WalletBalanceQueryParams;
 use circle_api::models::wallet_list::WalletListQueryParams;
 use circle_api::models::wallet_set::WalletSetsQueryParams;
@@ -106,8 +108,9 @@ async fn run() -> Result<(), anyhow::Error> {
         wallets[1].address.clone(),
         native_token.id,
         wallets[0].id,
-        1
-    ).fee_level(FeeLevel::Low);
+        1,
+    )
+    .fee_level(FeeLevel::Low);
     let tx_request = circle_client
         .create_transfer_transaction(idempotency_key, transaction_request_builder)
         .await?;

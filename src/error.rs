@@ -1,7 +1,8 @@
-use crate::api::ApiError;
-use crate::models::RequestId;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+
+use crate::api::ApiError;
+use crate::models::RequestId;
 
 pub type Result<T> = std::result::Result<T, CircleError>;
 
