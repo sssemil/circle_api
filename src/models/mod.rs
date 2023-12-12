@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-mod auth;
+pub mod auth;
 pub mod custody_type;
 pub mod pagination;
 pub mod public_key;

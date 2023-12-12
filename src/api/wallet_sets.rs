@@ -2,6 +2,7 @@ use crate::error::Result;
 use reqwest::Method;
 
 use crate::api::{encrypt_entity_secret, CircleClient};
+use crate::models::auth::Auth;
 use uuid::Uuid;
 
 use crate::models::wallet_set::{
@@ -27,11 +28,10 @@ impl CircleClient {
     ) -> Result<CreateWalletSetResponse> {
         let url = format!("{}w3s/developer/walletSets", self.base_url);
         let request = CreateWalletSetRequest {
-            idempotency_key,
-            entity_secret_cipher_text: encrypt_entity_secret(
-                &self.public_key,
-                &self.circle_entity_secret,
-            )?,
+            auth: Auth::new(
+                idempotency_key,
+                encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
+            ),
             name,
         };
         self.send_request(Method::POST, url, Some(request)).await
