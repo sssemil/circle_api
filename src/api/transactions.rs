@@ -1,34 +1,47 @@
 use reqwest::Method;
+use uuid::Uuid;
 
-use crate::api::CircleClient;
+use crate::api::{encrypt_entity_secret, CircleClient};
 
 use crate::error::Result;
+use crate::models::auth::Auth;
 use crate::models::transaction_accelerate::{
     TransactionAccelerateRequest, TransactionAccelerateResponse,
 };
 use crate::models::transaction_transfer_create::{
-    TransactionTransferCreateRequest, TransactionTransferCreateResponse,
+    TransactionTransferCreateRequestBuilder, TransactionTransferCreateResponse,
 };
 
 impl CircleClient {
     pub async fn create_transfer_transaction(
         &self,
-        request: TransactionTransferCreateRequest,
+        idempotency_key: Uuid,
+        request: TransactionTransferCreateRequestBuilder,
     ) -> Result<TransactionTransferCreateResponse> {
         let url = format!("{}w3s/developer/transactions/transfer", self.base_url);
-        let r = self.send_request(Method::POST, url, Some(request)).await?;
-        Ok(r)
+        let request = request.build(Auth::new(
+            idempotency_key,
+            encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
+        ));
+        let response = self.send_request(Method::POST, url, Some(request)).await?;
+        Ok(response)
     }
 
     pub async fn accelerate_transaction(
         &self,
         transaction_id: String,
-        request: TransactionAccelerateRequest,
+        idempotency_key: Uuid,
     ) -> Result<TransactionAccelerateResponse> {
         let url = format!(
             "{}w3s/developer/transactions/{}/accelerate",
             self.base_url, transaction_id
         );
+        let request = TransactionAccelerateRequest {
+            auth: Auth::new(
+                idempotency_key,
+                encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
+            ),
+        };
         let response = self.send_request(Method::POST, url, Some(request)).await?;
         Ok(response)
     }

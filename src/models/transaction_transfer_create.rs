@@ -20,17 +20,24 @@ pub struct TransactionTransferCreateRequest {
     wallet_id: Uuid,
 }
 
-impl TransactionTransferCreateRequest {
-    pub fn new(
-        idempotency_key: Uuid,
-        destination_address: String,
-        entity_secret_cipher_text: String,
-        token_id: Uuid,
-        wallet_id: Uuid,
-    ) -> Self {
-        TransactionTransferCreateRequest {
-            auth: Auth::new(idempotency_key, entity_secret_cipher_text),
-            amounts: Vec::new(),
+pub struct TransactionTransferCreateRequestBuilder {
+    amounts: Vec<i64>,
+    destination_address: String,
+    fee_level: Option<FeeLevel>,
+    gas_limit: Option<u64>,
+    gas_price: Option<f64>,
+    max_fee: Option<f64>,
+    priority_fee: Option<f64>,
+    nft_token_ids: Option<Vec<String>>,
+    ref_id: Option<String>,
+    token_id: Uuid,
+    wallet_id: Uuid,
+}
+
+impl TransactionTransferCreateRequestBuilder {
+    pub fn new(destination_address: String, token_id: Uuid, wallet_id: Uuid, amount: i64) -> Self {
+        TransactionTransferCreateRequestBuilder {
+            amounts: vec![amount],
             destination_address,
             fee_level: None,
             gas_limit: None,
@@ -44,7 +51,7 @@ impl TransactionTransferCreateRequest {
         }
     }
 
-    pub fn amounts(mut self, amounts: Vec<String>) -> Self {
+    pub fn amounts(mut self, amounts: Vec<i64>) -> Self {
         self.amounts = amounts;
         self
     }
@@ -82,6 +89,23 @@ impl TransactionTransferCreateRequest {
     pub fn ref_id<S: Into<String>>(mut self, ref_id: S) -> Self {
         self.ref_id = Some(ref_id.into());
         self
+    }
+
+    pub fn build(self, auth: Auth) -> TransactionTransferCreateRequest {
+        TransactionTransferCreateRequest {
+            auth,
+            amounts: self.amounts.iter().map(|x| x.to_string()).collect(),
+            destination_address: self.destination_address,
+            fee_level: self.fee_level,
+            gas_limit: self.gas_limit,
+            gas_price: self.gas_price,
+            max_fee: self.max_fee,
+            priority_fee: self.priority_fee,
+            nft_token_ids: self.nft_token_ids,
+            ref_id: self.ref_id,
+            token_id: self.token_id,
+            wallet_id: self.wallet_id,
+        }
     }
 }
 

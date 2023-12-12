@@ -5,6 +5,8 @@ pub mod custody_type;
 pub mod pagination;
 pub mod public_key;
 pub mod time_range;
+pub mod token_get;
+pub mod token_info;
 pub mod transaction_accelerate;
 pub mod transaction_transfer_create;
 pub mod wallet_balance;
