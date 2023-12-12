@@ -3,7 +3,12 @@ use reqwest::Method;
 use crate::api::CircleClient;
 
 use crate::error::Result;
-use crate::models::transaction_transfer_create::{TransactionTransferCreateRequest, TransactionTransferCreateResponse};
+use crate::models::transaction_accelerate::{
+    TransactionAccelerateRequest, TransactionAccelerateResponse,
+};
+use crate::models::transaction_transfer_create::{
+    TransactionTransferCreateRequest, TransactionTransferCreateResponse,
+};
 
 impl CircleClient {
     pub async fn create_transfer_transaction(
@@ -15,7 +20,19 @@ impl CircleClient {
         Ok(r)
     }
 
-    // TODO: accelerate a transaction
+    pub async fn accelerate_transaction(
+        &self,
+        transaction_id: String,
+        request: TransactionAccelerateRequest,
+    ) -> Result<TransactionAccelerateResponse> {
+        let url = format!(
+            "{}w3s/developer/transactions/{}/accelerate",
+            self.base_url, transaction_id
+        );
+        let response = self.send_request(Method::POST, url, Some(request)).await?;
+        Ok(response)
+    }
+
     // TODO: cancel a transaction
     // TODO: create a contract execution transaction
     // TODO: list transactions

@@ -1,8 +1,8 @@
+use crate::models::auth::Auth;
 use crate::models::custody_type::CustodyType;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::models::auth::Auth;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

@@ -1,6 +1,6 @@
+use crate::models::auth::Auth;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
-use crate::models::auth::Auth;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
