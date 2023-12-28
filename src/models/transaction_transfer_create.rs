@@ -1,4 +1,5 @@
 use crate::models::auth::Auth;
+use crate::models::transaction_state::TransactionState;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -120,20 +121,6 @@ pub enum FeeLevel {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionTransferCreateResponse {
-    pub id: String,
+    pub id: Uuid,
     pub state: TransactionState,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
-pub enum TransactionState {
-    Initiated,
-    PendingRiskScreening,
-    Denied,
-    Queued,
-    Sent,
-    Confirmed,
-    Complete,
-    Failed,
-    Cancelled,
 }

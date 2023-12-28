@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 use crate::api::{encrypt_entity_secret, CircleClient};
 use crate::error::Result;
+use crate::models::blockchain::Blockchain;
 use crate::models::wallet_balance::{WalletBalanceQueryParams, WalletBalanceResponse};
 use crate::models::wallet_create::{WalletCreateRequest, WalletCreateResponse};
 use crate::models::wallet_get::WalletGetResponse;
@@ -15,7 +16,7 @@ impl CircleClient {
         &self,
         idempotency_key: Uuid,
         wallet_set_id: Uuid,
-        blockchains: Vec<String>,
+        blockchains: Vec<Blockchain>,
         count: u32,
     ) -> Result<WalletCreateResponse> {
         let url = format!("{}w3s/developer/wallets", self.base_url);

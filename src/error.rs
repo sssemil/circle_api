@@ -16,6 +16,8 @@ pub enum CircleError {
     UnknownRequestError(reqwest::Error),
     FromHexError(hex::FromHexError),
     RsaError(rsa::errors::Error),
+    SerdeQsError(serde_qs::Error),
+    SerdeJsonError(serde_json::Error),
 }
 
 impl Display for CircleError {
@@ -53,5 +55,17 @@ impl From<hex::FromHexError> for CircleError {
 impl From<rsa::errors::Error> for CircleError {
     fn from(err: rsa::errors::Error) -> Self {
         CircleError::RsaError(err)
+    }
+}
+
+impl From<serde_qs::Error> for CircleError {
+    fn from(err: serde_qs::Error) -> Self {
+        CircleError::SerdeQsError(err)
+    }
+}
+
+impl From<serde_json::Error> for CircleError {
+    fn from(err: serde_json::Error) -> Self {
+        CircleError::SerdeJsonError(err)
     }
 }

@@ -1,9 +1,11 @@
+use log::debug;
 use reqwest::{Client, Method, Response};
 use rsa::pkcs8::DecodePublicKey;
 use rsa::sha2::Sha256;
 use rsa::{Oaep, RsaPublicKey};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -122,17 +124,15 @@ impl CircleClient {
         let request_id = request_id.to_str()?;
         let request_id = Uuid::parse_str(request_id)?;
 
-        if response.status().is_success() {
-            response
-                .json::<ApiSuccess<T>>()
-                .await
-                .map(|res| res.data)
-                .map_err(From::from)
+        let status = response.status();
+        let json_value: Value = response.json().await?;
+        debug!("json_value: {:?}", json_value);
+        if status.is_success() {
+            let json_obj = serde_json::from_value::<ApiSuccess<T>>(json_value)?;
+            Ok(json_obj.data)
         } else {
-            let t = response.text().await?;
-            todo!("parse error response");
-            let r = response.json::<ApiError>().await?;
-            Err(CircleError::ApiError(request_id, r))?
+            let json_obj = serde_json::from_value::<ApiError>(json_value)?;
+            Err(CircleError::ApiError(request_id, json_obj))?
         }
     }
 }

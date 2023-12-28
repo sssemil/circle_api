@@ -34,7 +34,7 @@ pub static CONFIG: Lazy<Config> = Lazy::new(|| {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    env_logger::init_from_env(Env::default().default_filter_or("info"));
+    env_logger::init_from_env(Env::default().default_filter_or("debug"));
 
     match run().await {
         Ok(_) => {}
@@ -116,6 +116,10 @@ async fn run() -> Result<(), anyhow::Error> {
         .await?;
 
     info!("Transaction created: {:?}", tx_request);
+
+    let tx = circle_client.get_transaction(tx_request.id, None).await?;
+
+    info!("Transaction: {:?}", tx);
 
     Ok(())
 }

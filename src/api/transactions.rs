@@ -1,13 +1,16 @@
 use reqwest::Method;
+
 use uuid::Uuid;
 
 use crate::api::{encrypt_entity_secret, CircleClient};
 
 use crate::error::Result;
 use crate::models::auth::Auth;
+use crate::models::transaction::TxType;
 use crate::models::transaction_accelerate::{
     TransactionAccelerateRequest, TransactionAccelerateResponse,
 };
+use crate::models::transaction_get::TransactionGetResponse;
 use crate::models::transaction_transfer_create::{
     TransactionTransferCreateRequestBuilder, TransactionTransferCreateResponse,
 };
@@ -49,7 +52,23 @@ impl CircleClient {
     // TODO: cancel a transaction
     // TODO: create a contract execution transaction
     // TODO: list transactions
-    // TODO: get a transaction
+
+    pub async fn get_transaction(
+        &self,
+        transaction_id: Uuid,
+        tx_type: Option<TxType>,
+    ) -> Result<TransactionGetResponse> {
+        let tx_type_param = match tx_type {
+            Some(tx_type) => format!("/{}", serde_qs::to_string(&tx_type)?),
+            None => String::new(),
+        };
+        let url = format!(
+            "{}w3s/transactions/{}{}",
+            self.base_url, transaction_id, tx_type_param
+        );
+        self.send_request(Method::GET, url, None::<()>).await
+    }
+
     // TODO: estimate fee for a transaction
     // TODO: estimate fee for a contract execution transaction
     // TODO: validate an address

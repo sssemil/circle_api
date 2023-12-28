@@ -6,6 +6,7 @@ use log::{error, info};
 use once_cell::sync::Lazy;
 
 use circle_api::api::CircleClient;
+use circle_api::models::blockchain::Blockchain;
 use circle_api::models::wallet_balance::WalletBalanceQueryParams;
 use circle_api::models::wallet_list::WalletListQueryParams;
 use circle_api::models::wallet_nfts::WalletNftsQueryParams;
@@ -86,7 +87,7 @@ async fn run() -> Result<(), anyhow::Error> {
         .create_wallet(
             idempotency_key,
             wallet_set.id,
-            vec!["MATIC-MUMBAI".to_string()],
+            vec![Blockchain::MaticMumbai],
             2,
         )
         .await?;
