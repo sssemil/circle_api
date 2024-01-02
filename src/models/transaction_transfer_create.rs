@@ -22,7 +22,7 @@ pub struct TransactionTransferCreateRequest {
 }
 
 pub struct TransactionTransferCreateRequestBuilder {
-    amounts: Vec<i64>,
+    amounts: Vec<f64>,
     destination_address: String,
     fee_level: Option<FeeLevel>,
     gas_limit: Option<u64>,
@@ -36,7 +36,7 @@ pub struct TransactionTransferCreateRequestBuilder {
 }
 
 impl TransactionTransferCreateRequestBuilder {
-    pub fn new(destination_address: String, token_id: Uuid, wallet_id: Uuid, amount: i64) -> Self {
+    pub fn new(destination_address: String, token_id: Uuid, wallet_id: Uuid, amount: f64) -> Self {
         TransactionTransferCreateRequestBuilder {
             amounts: vec![amount],
             destination_address,
@@ -52,7 +52,7 @@ impl TransactionTransferCreateRequestBuilder {
         }
     }
 
-    pub fn amounts(mut self, amounts: Vec<i64>) -> Self {
+    pub fn amounts(mut self, amounts: Vec<f64>) -> Self {
         self.amounts = amounts;
         self
     }

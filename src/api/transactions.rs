@@ -10,6 +10,7 @@ use crate::models::transaction::TxType;
 use crate::models::transaction_accelerate::{
     TransactionAccelerateRequest, TransactionAccelerateResponse,
 };
+use crate::models::transaction_cancel::{TransactionCancelRequest, TransactionCancelResponse};
 use crate::models::transaction_get::TransactionGetResponse;
 use crate::models::transaction_transfer_create::{
     TransactionTransferCreateRequestBuilder, TransactionTransferCreateResponse,
@@ -49,7 +50,24 @@ impl CircleClient {
         Ok(response)
     }
 
-    // TODO: cancel a transaction
+    pub async fn cancel_transaction(
+        &self,
+        transaction_id: Uuid,
+    ) -> Result<TransactionCancelResponse> {
+        let url = format!(
+            "{}w3s/developer/transactions/{}/cancel",
+            self.base_url, transaction_id
+        );
+        let request = TransactionCancelRequest {
+            auth: Auth::new(
+                Uuid::new_v4(),
+                encrypt_entity_secret(&self.public_key, &self.circle_entity_secret)?,
+            ),
+        };
+        let response = self.send_request(Method::POST, url, Some(request)).await?;
+        Ok(response)
+    }
+
     // TODO: create a contract execution transaction
     // TODO: list transactions
 
