@@ -16,7 +16,8 @@ impl CircleClient {
         query_params: WalletSetsQueryParams,
     ) -> Result<WalletSetsResponse> {
         let url = format!("{}w3s/walletSets", self.base_url);
-        self.send_request(Method::GET, url, Some(query_params)).await
+        self.send_request(Method::GET, url, Some(query_params))
+            .await
     }
 
     pub async fn create_wallet_set(

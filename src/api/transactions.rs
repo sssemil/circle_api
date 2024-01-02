@@ -73,10 +73,11 @@ impl CircleClient {
 
     pub async fn list_transactions(
         &self,
-        query_params: TransactionListQueryParams
+        query_params: TransactionListQueryParams,
     ) -> Result<TransactionListResponse> {
         let url = format!("{}w3s/transactions", self.base_url);
-        self.send_request(Method::GET, url, Some(query_params)).await
+        self.send_request(Method::GET, url, Some(query_params))
+            .await
     }
 
     pub async fn get_transaction(

@@ -7,13 +7,14 @@ use crate::models::pagination::Pagination;
 use crate::models::time_range::TimeRange;
 use crate::models::transaction::Transaction;
 use crate::models::transaction_state::TransactionState;
+use crate::models::web3_address::Web3Address;
 
 #[derive(Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionListQueryParams {
     blockchain: Option<Blockchain>,
     custody_type: Option<CustodyType>,
-    destination_address: Option<String>,
+    destination_address: Option<Web3Address>,
     include_all: Option<bool>,
     operation: Option<Operation>,
     state: Option<TransactionState>,
@@ -41,7 +42,7 @@ impl TransactionListQueryParams {
         self
     }
 
-    pub fn destination_address(mut self, value: String) -> Self {
+    pub fn destination_address(mut self, value: Web3Address) -> Self {
         self.destination_address = Some(value);
         self
     }

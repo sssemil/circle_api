@@ -4,11 +4,12 @@ use uuid::Uuid;
 use crate::models::pagination::Pagination;
 use crate::models::time_range::TimeRange;
 use crate::models::wallet_detail::WalletDetail;
+use crate::models::web3_address::Web3Address;
 
 #[derive(Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletListQueryParams {
-    address: Option<String>,
+    address: Option<Web3Address>,
     blockchain: Option<String>,
     wallet_set_id: Option<Uuid>,
     ref_id: Option<String>,
@@ -19,7 +20,7 @@ pub struct WalletListQueryParams {
 }
 
 impl WalletListQueryParams {
-    pub fn address(mut self, value: String) -> Self {
+    pub fn address(mut self, value: Web3Address) -> Self {
         self.address = Some(value);
         self
     }

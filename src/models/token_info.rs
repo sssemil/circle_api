@@ -1,3 +1,4 @@
+use crate::models::web3_address::Web3Address;
 use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use uuid::Uuid;
@@ -12,7 +13,7 @@ pub struct TokenInfo {
     pub decimals: Option<i32>,
     pub is_native: bool,
     pub symbol: Option<String>,
-    pub token_address: Option<String>,
+    pub token_address: Option<Web3Address>,
     pub create_date: DateTime<Utc>,
     pub update_date: DateTime<Utc>,
 }

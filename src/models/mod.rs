@@ -25,5 +25,6 @@ pub mod wallet_nfts;
 mod wallet_objects;
 pub mod wallet_set;
 pub mod wallet_update;
+pub mod web3_address;
 
 pub type RequestId = Uuid;

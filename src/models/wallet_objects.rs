@@ -3,13 +3,14 @@ use serde::Serialize;
 
 use crate::models::pagination::Pagination;
 use crate::models::time_range::TimeRange;
+use crate::models::web3_address::Web3Address;
 
 #[derive(Serialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletObjectsQueryParams {
     include_all: Option<bool>,
     name: Option<String>,
-    token_address: Option<String>,
+    token_address: Option<Web3Address>,
     standard: Option<String>,
     from: Option<DateTime<Utc>>,
     to: Option<DateTime<Utc>>,
@@ -30,7 +31,7 @@ impl WalletObjectsQueryParams {
         self
     }
 
-    pub fn token_address<S: Into<String>>(mut self, value: S) -> Self {
+    pub fn token_address<S: Into<Web3Address>>(mut self, value: S) -> Self {
         self.token_address = Some(value.into());
         self
     }

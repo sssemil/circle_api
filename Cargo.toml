@@ -24,6 +24,7 @@ pkcs1 = { version = "0.7.5", features = ["pkcs8"] }
 pkcs8 = "0.10.2"
 sha2 = "0.10.8"
 log = "0.4.20"
+web3 = "0.19.0"
 
 [dev-dependencies]
 anyhow = { version = "1.0", features = ["backtrace"] }

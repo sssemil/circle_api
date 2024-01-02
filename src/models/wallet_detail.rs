@@ -4,12 +4,13 @@ use serde::Deserialize;
 use uuid::Uuid;
 
 use crate::models::custody_type::CustodyType;
+use crate::models::web3_address::Web3Address;
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct WalletDetail {
     pub id: Uuid,
-    pub address: String,
+    pub address: Web3Address,
     pub blockchain: Blockchain,
     pub create_date: DateTime<Utc>,
     pub custody_type: CustodyType,

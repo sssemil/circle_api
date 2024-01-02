@@ -1,5 +1,6 @@
 use crate::models::auth::Auth;
 use crate::models::transaction_state::TransactionState;
+use crate::models::web3_address::Web3Address;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -9,7 +10,7 @@ pub struct TransactionTransferCreateRequest {
     #[serde(flatten)]
     auth: Auth,
     amounts: Vec<String>,
-    destination_address: String,
+    destination_address: Web3Address,
     fee_level: Option<FeeLevel>,
     gas_limit: Option<u64>,
     gas_price: Option<f64>,
@@ -23,7 +24,7 @@ pub struct TransactionTransferCreateRequest {
 
 pub struct TransactionTransferCreateRequestBuilder {
     amounts: Vec<f64>,
-    destination_address: String,
+    destination_address: Web3Address,
     fee_level: Option<FeeLevel>,
     gas_limit: Option<u64>,
     gas_price: Option<f64>,
@@ -36,7 +37,12 @@ pub struct TransactionTransferCreateRequestBuilder {
 }
 
 impl TransactionTransferCreateRequestBuilder {
-    pub fn new(destination_address: String, token_id: Uuid, wallet_id: Uuid, amount: f64) -> Self {
+    pub fn new(
+        destination_address: Web3Address,
+        token_id: Uuid,
+        wallet_id: Uuid,
+        amount: f64,
+    ) -> Self {
         TransactionTransferCreateRequestBuilder {
             amounts: vec![amount],
             destination_address,
