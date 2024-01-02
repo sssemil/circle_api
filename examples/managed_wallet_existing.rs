@@ -55,22 +55,33 @@ async fn get_balances(
     circle_client: &CircleClient,
     wallets: &[WalletDetail],
 ) -> Result<Vec<WalletBalanceResponse>> {
-    let balance_futures = wallets.iter().map(|w| {
-        circle_client.get_wallet_balance(w.id, WalletBalanceQueryParams::default().include_all(true))
-    }).collect::<Vec<_>>();
+    let balance_futures = wallets
+        .iter()
+        .map(|w| {
+            circle_client
+                .get_wallet_balance(w.id, WalletBalanceQueryParams::default().include_all(true))
+        })
+        .collect::<Vec<_>>();
 
-    let balances = join_all(balance_futures).await.into_iter().map(|r| r.map_err(|e| e.into())).collect::<Result<Vec<_>>>()?;
+    let balances = join_all(balance_futures)
+        .await
+        .into_iter()
+        .map(|r| r.map_err(|e| e.into()))
+        .collect::<Result<Vec<_>>>()?;
 
     Ok(balances)
 }
 
-fn print_balances(
-    balances: &[WalletBalanceResponse]
-) {
+fn print_balances(balances: &[WalletBalanceResponse]) {
     for (i, balance) in balances.iter().enumerate() {
         info!("Balance #{}", i);
         for b in &balance.token_balances {
-            info!("Balance #{}: {}; {}", i, b.token.symbol.clone().unwrap_or_default(), b.amount);
+            info!(
+                "Balance #{}: {}; {}",
+                i,
+                b.token.symbol.clone().unwrap_or_default(),
+                b.amount
+            );
         }
     }
 }
@@ -80,14 +91,24 @@ async fn run() -> Result<(), anyhow::Error> {
     let circle_client = CircleClient::new(
         CONFIG.circle_api_key.clone(),
         CONFIG.circle_entity_secret.clone(),
-    ).await?;
+    )
+    .await?;
 
     let wallet_set_name = "test_wallet_set";
 
-    let list_wallet_set_response = circle_client.list_wallet_sets(WalletSetsQueryParams::new()).await?;
-    let wallet_set = list_wallet_set_response.wallet_sets.iter().filter(|x| x.name.is_some()).find(|x| x.name.as_ref().unwrap() == wallet_set_name).ok_or(anyhow::Error::msg("Wallet set not found!"))?;
+    let list_wallet_set_response = circle_client
+        .list_wallet_sets(WalletSetsQueryParams::new())
+        .await?;
+    let wallet_set = list_wallet_set_response
+        .wallet_sets
+        .iter()
+        .filter(|x| x.name.is_some())
+        .find(|x| x.name.as_ref().unwrap() == wallet_set_name)
+        .ok_or(anyhow::Error::msg("Wallet set not found!"))?;
 
-    let list_wallet_response = circle_client.list_wallets(WalletListQueryParams::default().wallet_set_id(wallet_set.id)).await?;
+    let list_wallet_response = circle_client
+        .list_wallets(WalletListQueryParams::default().wallet_set_id(wallet_set.id))
+        .await?;
 
     let wallets = &list_wallet_response.wallets[0..2];
     for (i, wallet) in wallets.iter().enumerate() {
@@ -97,7 +118,12 @@ async fn run() -> Result<(), anyhow::Error> {
     let balances = get_balances(&circle_client, wallets).await?;
     print_balances(&balances);
 
-    let native_token = &balances[0].token_balances.iter().find(|x| x.token.is_native).expect("Native token not found!").token;
+    let native_token = &balances[0]
+        .token_balances
+        .iter()
+        .find(|x| x.token.is_native)
+        .expect("Native token not found!")
+        .token;
     let native_token_info = circle_client.get_token_details(native_token.id).await?;
     info!("Native token info: {:?}", native_token_info.token);
 
@@ -109,8 +135,11 @@ async fn run() -> Result<(), anyhow::Error> {
         native_token.id,
         wallets[0].id,
         0.0001,
-    ).fee_level(FeeLevel::Low);
-    let tx_request = circle_client.create_transfer_transaction(idempotency_key, transaction_request_builder).await?;
+    )
+    .fee_level(FeeLevel::Low);
+    let tx_request = circle_client
+        .create_transfer_transaction(idempotency_key, transaction_request_builder)
+        .await?;
 
     info!("Transaction created: {:?}", tx_request);
 
@@ -135,6 +164,11 @@ async fn run() -> Result<(), anyhow::Error> {
 
     let balances = get_balances(&circle_client, wallets).await?;
     print_balances(&balances);
+
+    let tx_list = circle_client.list_transactions(Default::default()).await?;
+    for tx in tx_list.transactions {
+        info!("Transaction: {:?}", tx);
+    }
 
     Ok(())
 }

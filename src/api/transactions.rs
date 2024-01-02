@@ -12,6 +12,7 @@ use crate::models::transaction_accelerate::{
 };
 use crate::models::transaction_cancel::{TransactionCancelRequest, TransactionCancelResponse};
 use crate::models::transaction_get::TransactionGetResponse;
+use crate::models::transaction_list::{TransactionListQueryParams, TransactionListResponse};
 use crate::models::transaction_transfer_create::{
     TransactionTransferCreateRequestBuilder, TransactionTransferCreateResponse,
 };
@@ -69,7 +70,14 @@ impl CircleClient {
     }
 
     // TODO: create a contract execution transaction
-    // TODO: list transactions
+
+    pub async fn list_transactions(
+        &self,
+        query_params: TransactionListQueryParams
+    ) -> Result<TransactionListResponse> {
+        let url = format!("{}w3s/transactions", self.base_url);
+        self.send_request(Method::GET, url, Some(query_params)).await
+    }
 
     pub async fn get_transaction(
         &self,

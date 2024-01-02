@@ -13,6 +13,7 @@ pub mod transaction;
 pub mod transaction_accelerate;
 pub mod transaction_cancel;
 pub mod transaction_get;
+pub mod transaction_list;
 pub mod transaction_state;
 pub mod transaction_transfer_create;
 pub mod wallet_balance;
