@@ -6,6 +6,7 @@ pub mod custody_type;
 mod operation;
 pub mod pagination;
 pub mod public_key;
+pub mod signing_message;
 pub mod time_range;
 pub mod token_get;
 pub mod token_info;
@@ -26,5 +27,6 @@ mod wallet_objects;
 pub mod wallet_set;
 pub mod wallet_update;
 pub mod web3_address;
+pub mod web3_signature;
 
 pub type RequestId = Uuid;

@@ -41,3 +41,7 @@ path = "examples/managed_wallet.rs"
 [[example]]
 name = "managed_wallet_existing"
 path = "examples/managed_wallet_existing.rs"
+
+[[example]]
+name = "signing"
+path = "examples/managed_wallet_signing.rs"

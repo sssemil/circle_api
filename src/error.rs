@@ -11,6 +11,7 @@ pub enum CircleError {
     ApiError(RequestId, ApiError),
     ValueError,
     MissingRequestId,
+    MissingField(&'static str),
     RequestIdIsNotAValidString(reqwest::header::ToStrError),
     RequestIdIsNotAValidUuid(uuid::Error),
     UnknownRequestError(reqwest::Error),
@@ -18,6 +19,7 @@ pub enum CircleError {
     RsaError(rsa::errors::Error),
     SerdeQsError(serde_qs::Error),
     SerdeJsonError(serde_json::Error),
+    Web3SigningRecoveryError(web3::signing::RecoveryError),
 }
 
 impl Display for CircleError {
@@ -67,5 +69,11 @@ impl From<serde_qs::Error> for CircleError {
 impl From<serde_json::Error> for CircleError {
     fn from(err: serde_json::Error) -> Self {
         CircleError::SerdeJsonError(err)
+    }
+}
+
+impl From<web3::signing::RecoveryError> for CircleError {
+    fn from(err: web3::signing::RecoveryError) -> Self {
+        CircleError::Web3SigningRecoveryError(err)
     }
 }
